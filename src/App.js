@@ -1,26 +1,29 @@
 import React from 'react';
-import logo from './logo.svg';
 import './App.css';
-
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+import {Route, Link} from 'react-micro-router';
+import Home from './Components/home';
+import Search from './Components/search';
+const URI = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson"
+fetch(URI).then(res => res.json()
   );
-}
 
-export default App;
+
+   
+  export default function App() {
+   
+      return (
+          <div className="App">
+              <Link to="/">Home</Link> {" "}
+              <Link to="/search">Search</Link>
+   
+              <Route path="/" exact>
+                  <Home/>
+              </Route>
+   
+              <Route path="/search">
+                  <Search/>
+              </Route>
+          </div>
+      );
+   
+  }
