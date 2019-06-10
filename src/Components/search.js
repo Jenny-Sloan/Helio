@@ -1,36 +1,46 @@
-import React, { useState } from 'react';
-const URI = "https://www.govtrack.us/api/v2/role?current=true&role_type=senator"
-fetch(URI).then(res => res.json()
-);
-export default props => {
-    const [filterState, setFilterState] = useState('')
-    const [filterName, setName] = useState('')
-    const [filterParty, setParty] = useState('')
+import React, { useState, useEffect } from 'react';
+import SearchForm from './form';
 
-    // export default function Search() {
+const URI = `https://www.govtrack.us/api/v2/role?current=true&role_type=senator`
 
-    return (
+const filterByState = (senators, state) => senators.filter(senator => senator.state === state.toUpperCase())
 
-        <form
-            onSubmit={e => {
-                e.preventDefault()
-                const filter = { state: filterState, party: filterParty, name: filterName }
+const filterByParty = (senators, party) => senators.filter(senator => senator.party === party)
 
-                if (props.onSearched) {
-                    props.onSearched(filter)
-                }
-            }}
-        >
-            <label htmlFor="state">State</label>
-            <input type="text" className="inPut" name="state" minLength="2" maxLength="2" value={filterState} onChange={e => setFilterState(e.target.value)} />
-            <label htmlFor="name">Name</label>
-            <input type="text" className="inPut" name="name" value={filterName} onChange={e => setName(e.target.value)} />
-            <select onChange={e => setParty(e.target.value)}>
-                <option value="">All</option>
-                <option value="Democrat">Democrat</option>
-                <option value="Republican">Republican</option>
-                <option value="Independent">Independent</option>
-            </select>
-            <input type="submit" value="Submit" />
-        </form>
-    )}
+const getSenators = async (url) => fetch(url).then(res => res.json()).then(data => data.objects)
+
+const searchSenators = (senators = [], filter = { party: '', state: '' }) => {
+  // Make sure the filter.party and filter.state are both being used
+  if (filter.party && filter.state)
+    return senators.filter(senator => filter.party === senator.party && filter.state.toUpperCase() === senator.state.toUpperCase())
+
+  // Determine which filter is being used and filter appropriately predicated upon the filter object 
+  return filter.party ?
+    filterByParty(senators, filter.party) :
+    filterByState(senators, filter.state)
+}
+
+export default () => {
+  const [senators, setSenators] = useState([])
+  const [searched, setSearched] = useState([])
+
+  useEffect(() => {
+    getSenators(URI)
+      .then(results => setSenators(results))
+  }, [senators, searched]);
+
+
+  return (
+    <div>
+      <SearchForm onSearched={filter => {
+        const filtered = searchSenators(senators, filter)
+        setSearched(filtered)
+      }} />
+      <ul>
+        {searched.map((senator, index) => (
+          <li key={index}>{senator.person.lastname} | {senator.party}</li>
+        ))}
+      </ul>
+    </div>
+  )
+};
